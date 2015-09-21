@@ -121,6 +121,7 @@
     UITextField *textField = [[UITextField alloc] init];
     [textField setTranslatesAutoresizingMaskIntoConstraints:NO];
     [textField setBorderStyle:UITextBorderStyleRoundedRect];
+    textField.keyboardType = UIKeyboardTypeNumberPad;
     [textField setDelegate:self];
     [self setIdTextField:textField];
     [self.view addSubview:self.idTextField];
@@ -225,6 +226,21 @@
         [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
         return;
     }
+
+    if (self.idTextField.text.length != 6)
+    {
+        self.lblWarning.hidden = NO;
+        self.lblWarning.text = @"Please valid card id";
+        [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
+        return;
+    }
+    else if (![[self.idTextField.text substringToIndex:1] isEqualToString:@"3"])
+    {
+        self.lblWarning.hidden = NO;
+        self.lblWarning.text = @"Please valid card id";
+        [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
+        return;
+    }
     
     self.lblWarning.hidden = YES;
     
@@ -236,8 +252,8 @@
     //check whether id exists in db
     [SVProgressHUD showWithStatus:@"Checking..." maskType:SVProgressHUDMaskTypeGradient];
     
-    PFQuery *query = [PFQuery queryWithClassName:@"Cards"];
-    [query whereKey:@"Number" equalTo:self.idTextField.text];
+    PFQuery *query = [PFQuery queryWithClassName:@"LegendsCards"];
+    [query whereKey:@"CardNumber" equalTo:self.idTextField.text];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             [SVProgressHUD dismiss];

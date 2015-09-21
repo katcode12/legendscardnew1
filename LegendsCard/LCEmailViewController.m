@@ -275,8 +275,8 @@
     [[User sharedInstance] setEmail:self.emailTxtField.text];
     self.enteredEmail = true;
     
-    PFObject *cardObject = [PFObject objectWithClassName:@"Cards"];
-    cardObject[@"Number"] = ((User *)[User sharedInstance]).legendsNumber;
+    PFObject *cardObject = [PFObject objectWithClassName:@"LegendsCards"];
+    cardObject[@"CardNumber"] = [NSNumber numberWithLong:[((User *)[User sharedInstance]).legendsNumber longLongValue]];
     cardObject[@"Email"] = ((User *)[User sharedInstance]).email;
     cardObject[@"isRegistered"] = [NSNumber numberWithBool:true];
     

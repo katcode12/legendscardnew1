@@ -276,7 +276,7 @@
     self.enteredEmail = true;
     
     PFObject *cardObject = [PFObject objectWithClassName:@"LegendsCards"];
-    cardObject[@"CardNumber"] = [NSNumber numberWithLong:[((User *)[User sharedInstance]).legendsNumber longLongValue]];
+    cardObject[@"CardNumber"] = [NSNumber numberWithLongLong:[((User *)[User sharedInstance]).legendsNumber longLongValue]];
     cardObject[@"Email"] = ((User *)[User sharedInstance]).email;
     cardObject[@"isRegistered"] = [NSNumber numberWithBool:true];
     

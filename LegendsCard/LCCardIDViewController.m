@@ -253,7 +253,7 @@
     [SVProgressHUD showWithStatus:@"Checking..." maskType:SVProgressHUDMaskTypeGradient];
     
     PFQuery *query = [PFQuery queryWithClassName:@"LegendsCards"];
-    [query whereKey:@"CardNumber" equalTo:self.idTextField.text];
+    [query whereKey:@"CardNumber" equalTo:[NSNumber numberWithLongLong:[self.idTextField.text longLongValue]]];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             [SVProgressHUD dismiss];

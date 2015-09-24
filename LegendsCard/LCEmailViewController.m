@@ -195,7 +195,7 @@
     [idWarning setLineBreakMode:NSLineBreakByWordWrapping];
     [idWarning setBackgroundColor:[UIColor clearColor]];
     [idWarning setTextColor:[UIColor redColor]];
-    [idWarning setFont:[UIFont fontWithName:@"Cubano-Regular" size:13.f]];
+    [idWarning setFont:[UIFont fontWithName:@"Cubano-Regular" size:12.f]];
     [idWarning setText:@"Invalid email address"];
     [self setLblWarning:idWarning];
     [self.view addSubview:idWarning];
@@ -275,34 +275,54 @@
     [[User sharedInstance] setEmail:self.emailTxtField.text];
     self.enteredEmail = true;
     
-    PFObject *cardObject = [PFObject objectWithClassName:@"LegendsCards"];
-    cardObject[@"CardNumber"] = [NSNumber numberWithLongLong:[((User *)[User sharedInstance]).legendsNumber longLongValue]];
-    cardObject[@"Email"] = ((User *)[User sharedInstance]).email;
-    cardObject[@"isRegistered"] = [NSNumber numberWithBool:true];
+    [SVProgressHUD showWithStatus:@"Registering..." maskType:SVProgressHUDMaskTypeGradient];
+
+    NSString* strObjectId = [[NSUserDefaults standardUserDefaults] valueForKey:@"objectId"];
+    
+    PFQuery *query = [PFQuery queryWithClassName:@"LegendsCards"];
+    
+    // Retrieve the object by id
+    [query getObjectInBackgroundWithId:strObjectId
+                                 block:^(PFObject *cardObject, NSError *error) {
+                                     // Now let's update it with some new data. In this case, only cheatMode and score
+                                     // will get sent to the cloud. playerName hasn't changed.
+                                     if (error)
+                                     {
+                                         [SVProgressHUD dismiss];
+                                         self.lblWarning.hidden = NO;
+                                         self.lblWarning.text = @"Can't find object! Please try later.";
+                                         [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
+                                     }
+                                     else
+                                     {
+                                         cardObject[@"Email"] = ((User *)[User sharedInstance]).email;
+                                         cardObject[@"isRegistered"] = [NSNumber numberWithBool:true];
+                                         [cardObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                                             if (succeeded) {
+                                                 [SVProgressHUD dismiss];
+                                                 
+                                                 [[NSUserDefaults standardUserDefaults] setValue:((User *)[User sharedInstance]).school forKey:kNSUDSchoolCodeKey];
+                                                 [[NSUserDefaults standardUserDefaults] synchronize];
+                                                 
+                                                 [self dismissViewControllerAnimated:NO completion:^(void){
+                                                     [self.delegate didEnterEmail];
+                                                 }];
+                                                 
+                                             } else {
+                                                 // There was a problem, check error.description
+                                                 [SVProgressHUD dismiss];
+                                                 self.lblWarning.hidden = NO;
+                                                 self.lblWarning.text = @"Network error! Please try later.";
+                                                 [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
+                                             }
+                                         }];
+                                     }
+                                 
+    }];
     
     self.lblWarning.hidden = YES;
     //check whether id exists in db
-    [SVProgressHUD showWithStatus:@"Registering..." maskType:SVProgressHUDMaskTypeGradient];
     
-    [cardObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-        if (succeeded) {
-            [SVProgressHUD dismiss];
-            
-            [[NSUserDefaults standardUserDefaults] setValue:((User *)[User sharedInstance]).school forKey:kNSUDSchoolCodeKey];
-            [[NSUserDefaults standardUserDefaults] synchronize];
-
-            [self dismissViewControllerAnimated:NO completion:^(void){
-                [self.delegate didEnterEmail];
-            }];
-            
-        } else {
-            // There was a problem, check error.description
-            [SVProgressHUD dismiss];
-            self.lblWarning.hidden = NO;
-            self.lblWarning.text = @"Network error! Please try later";
-            [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
-        }
-    }];
 }
 
 - (void)didReceiveMemoryWarning {

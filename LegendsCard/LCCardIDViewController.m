@@ -166,7 +166,7 @@
     [idWarning setLineBreakMode:NSLineBreakByWordWrapping];
     [idWarning setBackgroundColor:[UIColor clearColor]];
     [idWarning setTextColor:[UIColor redColor]];
-    [idWarning setFont:[UIFont fontWithName:@"Cubano-Regular" size:13.f]];
+    [idWarning setFont:[UIFont fontWithName:@"Cubano-Regular" size:12.f]];
     [idWarning setText:@"This id is already registered!"];
     [self setLblWarning:idWarning];
     [self.view addSubview:idWarning];
@@ -222,7 +222,7 @@
     if (self.idTextField.text.length == 0)
     {
         self.lblWarning.hidden = NO;
-        self.lblWarning.text = @"Please input card id";
+        self.lblWarning.text = @"Please input card number";
         [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
         return;
     }
@@ -230,14 +230,7 @@
     if (self.idTextField.text.length != 6)
     {
         self.lblWarning.hidden = NO;
-        self.lblWarning.text = @"Please valid card id";
-        [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
-        return;
-    }
-    else if (![[self.idTextField.text substringToIndex:1] isEqualToString:@"3"])
-    {
-        self.lblWarning.hidden = NO;
-        self.lblWarning.text = @"Please valid card id";
+        self.lblWarning.text = @"Please input valid card number";
         [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
         return;
     }
@@ -263,17 +256,29 @@
             // Do something with the found objects
             if (objects.count > 0)
             {
-                //login
-                self.lblWarning.hidden = NO;
-                self.lblWarning.text = @"This id is already registered.";
-                [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
+                PFObject* cardObject = [objects lastObject];
+                bool bRegistered = [cardObject[@"isRegistered"] boolValue];
+                if (bRegistered)
+                {
+                    //login
+                    self.lblWarning.hidden = NO;
+                    self.lblWarning.text = @"This id is already registered.";
+                    [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
+                }
+                else
+                {
+                    NSString* strObjectId = cardObject.objectId;
+                    [[NSUserDefaults standardUserDefaults] setValue:strObjectId forKey:@"objectId"];
+                    [[NSUserDefaults standardUserDefaults] synchronize];
+                    
+                    [self gotoNextView];
+                }
             }
             else
             {
-                [[User sharedInstance] setLegendsNumber:self.idTextField.text];
-                self.enteredCardId = YES;
-                
-                [self presentViewController:self.emailVC animated:YES completion:nil];
+                self.lblWarning.hidden = NO;
+                self.lblWarning.text = @"Please input valid card number!";
+                [self performSelector:@selector(hideWarningLabel) withObject:nil afterDelay:1.2f];
             }
         } else {
             [SVProgressHUD dismiss];
@@ -286,6 +291,14 @@
         }
     }];
 
+}
+
+- (void) gotoNextView
+{
+    [[User sharedInstance] setLegendsNumber:self.idTextField.text];
+    self.enteredCardId = YES;
+    
+    [self presentViewController:self.emailVC animated:YES completion:nil];
 }
 
 - (void)didEnterEmail {
